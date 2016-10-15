@@ -1,0 +1,92 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// V : number of vertex
+// E : number of edge
+
+const int V = 100, E = 1000;
+
+struct Node{
+    vector<int> nextNode;
+    int weight[V];
+} node[V];
+
+void addEdge(int node1, int node2, int weight){
+    node[node1].nextNode.push_back(node2);
+    node[node1].weight[node2] = weight;
+    node[node2].nextNode.push_back(node1);
+    node[node2].weight[node1] = weight;
+}
+
+int que[V], level[V];
+int visited[V];
+
+int BFS(int s, int t){
+    // initialize
+    for(int i = 0; i < V; i++) visited[i] = 0;
+
+    int qFirst, qEnd = 0;
+    que[qEnd++] = s;
+    level[s] = 0;
+    visited[s] = 1;
+
+    for(qFirst = 0; qFirst < qEnd; qFirst++){
+
+        int nowNode = que[qFirst];
+        int numEdge = node[nowNode].nextNode.size();
+
+        for(int i = 0; i < numEdge; i++){
+
+            int nextNode = node[nowNode].nextNode[i];
+            int nextWeight = node[nowNode].weight[nextNode];
+
+            if(nextWeight > 0 && !visited[nextNode]){
+
+                que[qEnd] = nextNode;
+                level[nextNode] = level[qFirst] + 1;
+                visited[nextNode] = 1;
+                if(nextNode == t) return level[qEnd-1];
+            }
+        }
+    }
+    return V;
+}
+
+int DFS(int nowNode, int cost, int s, int t){
+
+    if(nowNode == t) return cost;
+    if(visited[nowNode]) return 0;
+    visited[nowNode] = 1;
+
+    int numEdge = node[nowNode].nextNode.size();
+
+    for(int i = 0; i < numEdge; i++){
+        int nextNode = node[nowNode].nextNode[i];
+        int nextWeight = node[nowNode].weight[nextNode];
+
+        if(nextWeight > 0 && level[nextNode] = level[nowNode] + 1){
+            int minCost = DFS(nextNode, min(cost, nextWeight), s, t);
+            if(minCost){
+                node[nowNode].weight[nextWeight] -= minCost;
+                node[nextNode].weight[nowNode] += minCost;
+                return minCost;
+            }
+        }
+    }
+    return 0;
+}
+
+int dinic(int s, int t){
+
+    int flow = 0;
+    while(BFS(s, t) < V){
+        while(true){
+            for(int i = 0; i < V; i++) visited[i] = 0;
+            int subFlow = DFS(s, 1e9, s, t);
+            flow += subFlow;
+        }
+    }
+    return flow;
+}
